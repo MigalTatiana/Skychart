@@ -1,0 +1,26 @@
+classDiagram
+    class SkyChartRepository {
+        +save(chart) SkyChart
+        +find__id(chart_id) SkyChart
+        +find_by_user_id(user_id) List~SkyChart~
+        +delete_chart(chart_id) bool
+    }
+    
+    class UserRepository {
+        +find_by_username(username) User
+        +save(user) User
+        +find_by_email(email) User
+    }
+    
+    class MessageRepository {
+        +find_by_chat(chat_id) List~Message~
+        +save(message) Message
+    }
+    
+    class SkyChartController {
+        -repository: SkyChartRepository
+        +get_user_charts(user_id)
+        +create_chart(user_id, image_file, points_data)
+    }
+    
+    SkyChartController --> SkyChartRepository : использует

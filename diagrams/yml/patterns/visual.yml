@@ -1,0 +1,31 @@
+classDiagram
+    class SkyChartPlatform {
+        +Router
+        +AuthProvider
+        +Layout
+        +Routes
+        +BottomNavigation
+    }
+    
+    class SkyChartEditor {
+        +ImageUploader
+        +Canvas
+        +PointList
+        +Toolbar
+    }
+    
+    class ChatInterface {
+        +ChatList
+        +MessageArea
+        +OnlineUsers
+    }
+    
+    class BottomNavigation {
+        +NavButton to Sky Charts
+        +NavButton to Chat
+        +NavButton to Profile
+    }
+    
+    SkyChartPlatform --> SkyChartEditor
+    SkyChartPlatform --> ChatInterface
+    SkyChartPlatform --> BottomNavigation
