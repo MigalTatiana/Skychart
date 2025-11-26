@@ -372,8 +372,13 @@
                 this.currentPoints = [];
                 this.selectedPoint = null;
                 this.imageScale = { x: 1, y: 1 };
+                this.editingSkychartId = new URLSearchParams(window.location.search).get('edit');
+                this.isEditing = !!this.editingSkychartId;
                 this.initializeElements();
                 this.setupEventListeners();
+                if (this.isEditing) {
+                    this.loadSkychartForEditing();
+                }
             }
 
             initializeElements() {
@@ -390,6 +395,10 @@
                 this.cancelBtn = document.getElementById('cancelBtn');
                 this.nameError = document.getElementById('nameError');
                 this.radiusError = document.getElementById('radiusError');
+                if (this.isEditing) {
+                    document.querySelector('.header h1').textContent = 'Редактирование скайчарта';
+                    this.saveSkychartBtn.textContent = 'Обновить скайчарт';
+                }
             }
 
             setupEventListeners() {
@@ -548,7 +557,7 @@
                     pointElement.innerHTML = `
                         <div class="point-info">
                             <div class="point-name">${point.name}</div>
-                            <div class="point-radius">Радиус: ${point.radius}, Координаты: (${point.x.toFixed(3)}, ${point.y.toFixed(3)})</div>
+                            <div class="point-radius">Радиус: ${point.radius}, Координаты: (${(point.x || 0).toFixed(3)}, ${(point.y || 0).toFixed(3)})</div>
                         </div>
                         <div class="point-actions">
                             <button class="btn btn-warning btn-sm" onclick="skychartCreator.editPoint(${index})">Изменить</button>
@@ -562,9 +571,9 @@
             editPoint(index) {
                 const point = this.currentPoints[index];
                 
-                // Устанавливаем значения в форму
-                this.pointNameInput.value = point.name;
-                this.pointRadiusInput.value = point.radius;
+                // Устанавливаем значения в форму (безопасное преобразование)
+                this.pointNameInput.value = point.name || '';
+                this.pointRadiusInput.value = point.radius || '0.05';
                 
                 // Удаляем точку из списка
                 this.currentPoints.splice(index, 1);
@@ -634,13 +643,19 @@
                 }
                 return false;
             }
+
             async saveSkychart() {
                 if (this.currentPoints.length === 0) {
                     alert('Добавьте хотя бы одну точку');
                     return;
                 }
-
-                const title = prompt('Введите название скайчарта:');
+                let title;
+                if (this.isEditing) {
+                    // При редактировании используем существующее название
+                    title = prompt('Введите новое название скайчарта:', 'Скайчарт ' + new Date().toLocaleDateString());
+                } else {
+                    title = prompt('Введите название скайчарта:');
+                }
                 if (!title) return;
 
                 try {
@@ -667,9 +682,21 @@
                         }
                     }
 
+                    let url, method;
+                    if (this.isEditing) {
+                        // Редактирование существующего скайчарта
+                        url = `/api/skycharts/${this.editingSkychartId}`;
+                        method = 'PUT';
+                        formData.append('_method', 'PUT');
+                    } else {
+                        // Создание нового скайчарта
+                        url = '/api/skycharts/create';
+                        method = 'POST';
+                    }
+
                     // Отправка запроса
-                    const response = await fetch('/api/skycharts/create', {
-                        method: 'POST',
+                    const response = await fetch(url, {
+                        method: method,
                         headers: {
                             'Authorization': `Bearer ${token}`
                         },
@@ -696,7 +723,7 @@
                     }
 
                     const result = await response.json();
-                    alert('Скайчарт успешно создан!');
+                    alert(this.isEditing ? 'Скайчарт успешно обновлен!' : 'Скайчарт успешно создан!');
                     window.location.href = 'skychart_list.html';
 
                 } catch (error) {
@@ -715,6 +742,71 @@
                 }
                     
                 return new Blob([ab], { type: mimeString });
+            }
+
+            async loadSkychartForEditing() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    const response = await fetch(`/api/skycharts/${this.editingSkychartId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка загрузки скайчарта');
+                    }
+
+                    const data = await response.json();
+                    const skychart = data.skychart;
+
+                    // Преобразуем координаты и радиусы в числа
+                    this.currentPoints = (skychart.points || []).map(point => ({
+                        id: point.id,
+                        name: point.name,
+                        x: parseFloat(point.x), // Преобразуем в число
+                        y: parseFloat(point.y), // Преобразуем в число
+                        radius: parseFloat(point.radius) // Преобразуем в число
+                    }));
+                    
+                    // Если есть изображение, загружаем его
+                    if (skychart.image_url) {
+                        this.loadExistingImage(skychart.image_url);
+                    }
+
+                    // Рендерим точки
+                    this.renderPointsList();
+                    
+                    // Активируем кнопку сохранения
+                    this.saveSkychartBtn.disabled = false;
+
+                    console.log('Загружен скайчарт для редактирования:', skychart);
+
+                } catch (error) {
+                    console.error('Ошибка загрузки скайчарта:', error);
+                    alert('Ошибка загрузки скайчарта: ' + error.message);
+                }
+            }
+
+            loadExistingImage(imageUrl) {
+                this.imagePreview.src = imageUrl;
+                this.imagePreviewContainer.classList.remove('hidden');
+                this.uploadArea.style.display = 'none';
+                
+                // Устанавливаем масштаб после загрузки изображения
+                this.imagePreview.onload = () => {
+                    const naturalWidth = this.imagePreview.naturalWidth;
+                    const naturalHeight = this.imagePreview.naturalHeight;
+                    const displayedWidth = this.imagePreview.clientWidth;
+                    const displayedHeight = this.imagePreview.clientHeight;
+                    
+                    this.imageScale.x = naturalWidth / displayedWidth;
+                    this.imageScale.y = naturalHeight / displayedHeight;
+                };
             }
 
             cancel() {

@@ -387,4 +387,143 @@ router.post('/:id/check', auth, async (req, res) => {
     }
 });
 
+/**
+ * Обновить скайчарт
+ * PUT /api/skycharts/:id
+ */
+router.put('/:id', auth, upload.single('image'), async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const skychartId = req.params.id;
+        const userId = req.user.id;
+        const { title } = req.body;
+
+        // Проверяем, что скайчарт принадлежит пользователю
+        const existingChart = await pool.query(
+            `SELECT id, user_id, image_url FROM skycharts WHERE id = $1`,
+            [skychartId]
+        );
+
+        if (existingChart.rows.length === 0) {
+            return res.status(404).json({ error: 'Skychart not found' });
+        }
+
+        if (existingChart.rows[0].user_id !== userId) {
+            return res.status(403).json({ error: 'Forbidden: not your skychart' });
+        }
+
+        let points = [];
+        if (req.body.points) {
+            try {
+                const parsedPoints = JSON.parse(req.body.points);
+                if (Array.isArray(parsedPoints)) {
+                    points = parsedPoints;
+                }
+            } catch (err) {
+                return res.status(400).json({ error: 'Invalid points format' });
+            }
+        }
+
+        if (!title) {
+            return res.status(400).json({ error: 'Title is required' });
+        }
+
+        // Определяем URL изображения
+        let imageUrl = existingChart.rows[0].image_url;
+        if (req.file) {
+            imageUrl = `/uploads/${req.file.filename}`;
+            
+            // Удаляем старое изображение если загружено новое
+            if (existingChart.rows[0].image_url) {
+                try {
+                    const oldFilename = path.basename(existingChart.rows[0].image_url);
+                    const oldFilePath = path.join(__dirname, '../uploads', oldFilename);
+                    await fs.unlink(oldFilePath).catch(() => {});
+                } catch (fileError) {
+                    console.error('Error deleting old image:', fileError);
+                }
+            }
+        }
+
+        await client.query('BEGIN');
+
+        // Обновляем скайчарт
+        const skychartResult = await client.query(
+            `UPDATE skycharts 
+             SET title = $1, image_url = $2, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $3
+             RETURNING id, title, user_id, is_public, image_url, created_at, updated_at`,
+            [title, imageUrl, skychartId]
+        );
+
+        const skychart = skychartResult.rows[0];
+
+        // Удаляем старые точки и добавляем новые
+        await client.query(
+            `DELETE FROM skychart_points WHERE skychart_id = $1`,
+            [skychartId]
+        );
+
+        if (Array.isArray(points) && points.length > 0) {
+            const insertValues = [];
+            const params = [];
+
+            points.forEach((p, index) => {
+                const base = index * 5;
+                params.push(
+                    p.x,
+                    p.y,
+                    p.radius,
+                    p.name || `Point ${index + 1}`,
+                    skychart.id
+                );
+                insertValues.push(
+                    `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`
+                );
+            });
+
+            await client.query(
+                `INSERT INTO skychart_points (x, y, radius, name, skychart_id)
+                 VALUES ${insertValues.join(', ')}`,
+                params
+            );
+        }
+
+        await client.query('COMMIT');
+
+        // Получаем обновленные точки
+        const pointsResult = await pool.query(
+            `SELECT id, x, y, radius, name
+             FROM skychart_points
+             WHERE skychart_id = $1
+             ORDER BY id`,
+            [skychart.id]
+        );
+
+        res.json({
+            message: 'Skychart updated successfully',
+            skychart: {
+                ...skychart,
+                points: pointsResult.rows
+            }
+        });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Update skychart error:', error);
+        
+        // Удаляем загруженный файл если произошла ошибка
+        if (req.file && req.file.path) {
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error('Error deleting file:', err);
+            });
+        }
+        
+        res.status(500).json({ error: 'Internal server error' });
+    } finally {
+        client.release();
+    }
+});
+
 module.exports = router;
