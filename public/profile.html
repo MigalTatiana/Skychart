@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Learning Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg,rgb(12, 25, 80) 0%,rgb(54, 42, 130) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .main-card h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            text-align: left;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-info h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info h3:before {
+            content: "👤";
+            font-size: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 500;
+            text-align: right;
+            flex: 1;
+            padding-left: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg,rgb(12, 25, 80) 0%,rgb(54, 42, 130) 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .bottom-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: all 0.3s ease;
+            padding: 5px 15px;
+            border-radius: 10px;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-item:hover {
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .nav-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
+            margin: 0 auto 20px;
+        }
+
+        .no-data {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Learning Platform</h1>
+    </div>
+
+    <div class="content">
+        <div class="main-card">
+            <h2>Мой профиль</h2>
+            
+            <div id="userProfile">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка данных профиля...</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">Выйти из аккаунта</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="skychart_list.html" class="nav-item">
+            <div class="nav-icon">🔭</div>
+            <div class="nav-text">Скайчарты</div>
+        </a>
+        <a href="chats.html" class="nav-item">
+            <div class="nav-icon">💬</div>
+            <div class="nav-text">Чаты</div>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <div class="nav-icon">👤</div>
+            <div class="nav-text">Профиль</div>
+        </a>
+    </nav>
+
+    <canvas id="particles-canvas" class="particles-container"></canvas>
+
+    <script>
+        class ProfileManager {
+            constructor() {
+                this.userProfile = document.getElementById('userProfile');
+                this.init();
+            }
+
+            init() {
+                this.loadUserData();
+            }
+
+            loadUserData() {
+                const token = localStorage.getItem('token');
+                const userData = localStorage.getItem('user');
+
+                if (!token) {
+                    this.showNoAuth();
+                    return;
+                }
+
+                if (userData) {
+                    try {
+                        const user = JSON.parse(userData);
+                        this.renderUserProfile(user);
+                    } catch (error) {
+                        console.error('Error parsing user data:', error);
+                        this.showError('Ошибка загрузки данных профиля');
+                    }
+                } else {
+                    this.showNoUserData();
+                }
+            }
+
+            renderUserProfile(user) {
+                const avatarLetter = this.getAvatarLetter(user);
+                const joinDate = this.formatJoinDate(user.createdAt || new Date().toISOString());
+                
+                this.userProfile.innerHTML = `
+                    <div class="avatar">${avatarLetter}</div>
+                    
+                    <div class="user-info">
+                        <h3>Основная информация</h3>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">${user.email || 'Не указан'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Имя пользователя:</span>
+                            <span class="info-value">${user.username || user.email?.split('@')[0] || 'Не указан'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">ID пользователя:</span>
+                            <span class="info-value">${user.id || user._id || 'Не указан'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Дата регистрации:</span>
+                            <span class="info-value">${joinDate}</span>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number">${user.skychartsCount || 0}</div>
+                            <div class="stat-label">Скайчартов создано</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${user.messagesCount || 0}</div>
+                            <div class="stat-label">Сообщений отправлено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${user.rating || 'Новичок'}</div>
+                            <div class="stat-label">Рейтинг</div>
+                        </div>
+                    </div>
+
+                    ${this.renderAdditionalInfo(user)}
+                `;
+            }
+
+            getAvatarLetter(user) {
+                if (user.username) {
+                    return user.username.charAt(0).toUpperCase();
+                }
+                if (user.email) {
+                    return user.email.charAt(0).toUpperCase();
+                }
+                return 'U';
+            }
+
+            formatJoinDate(dateString) {
+                try {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('ru-RU', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                } catch (error) {
+                    return 'Неизвестно';
+                }
+            }
+
+            renderAdditionalInfo(user) {
+                const additionalFields = [];
+                
+                if (user.firstName || user.lastName) {
+                    additionalFields.push(`
+                        <div class="info-item">
+                            <span class="info-label">Полное имя:</span>
+                            <span class="info-value">${[user.firstName, user.lastName].filter(Boolean).join(' ') || 'Не указано'}</span>
+                        </div>
+                    `);
+                }
+
+                if (user.role) {
+                    additionalFields.push(`
+                        <div class="info-item">
+                            <span class="info-label">Роль:</span>
+                            <span class="info-value">${user.role}</span>
+                        </div>
+                    `);
+                }
+
+                if (additionalFields.length > 0) {
+                    return `
+                        <div class="user-info">
+                            <h3>Дополнительная информация</h3>
+                            ${additionalFields.join('')}
+                        </div>
+                    `;
+                }
+
+                return '';
+            }
+
+            showNoAuth() {
+                this.userProfile.innerHTML = `
+                    <div class="no-data">
+                        <h3>❌ Не авторизован</h3>
+                        <p>Для просмотра профиля необходимо войти в систему</p>
+                        <button onclick="window.location.href='/login.html'" class="logout-btn" style="margin-top: 15px;">
+                            Войти
+                        </button>
+                    </div>
+                `;
+            }
+
+            showNoUserData() {
+                this.userProfile.innerHTML = `
+                    <div class="no-data">
+                        <h3>📝 Данные профиля не найдены</h3>
+                        <p>Информация о пользователе не была сохранена</p>
+                        <button onclick="location.reload()" class="logout-btn" style="margin-top: 15px; background: #6c757d;">
+                            Обновить
+                        </button>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                this.userProfile.innerHTML = `
+                    <div class="no-data">
+                        <h3>⚠️ Ошибка</h3>
+                        <p>${message}</p>
+                        <button onclick="location.reload()" class="logout-btn" style="margin-top: 15px; background: #dc3545;">
+                            Попробовать снова
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function logout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Анимация частиц
+        class ParticleAnimation {
+            constructor() {
+                this.canvas = document.getElementById('particles-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.mouse = { x: 0, y: 0 };
+                
+                this.init();
+                this.animate();
+                
+                window.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
+            }
+            
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                for (let i = 0; i < 80; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 3 + 1,
+                        speedX: Math.random() * 1 - 0.5,
+                        speedY: Math.random() * 1 - 0.5,
+                        color: `rgba(255, 255, 255, ${Math.random() * 0.6 + 0.2})`
+                    });
+                }
+            }
+            
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                for (let particle of this.particles) {
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    if (particle.x < 0 || particle.x > this.canvas.width) particle.speedX *= -1;
+                    if (particle.y < 0 || particle.y > this.canvas.height) particle.speedY *= -1;
+                    
+                    const dx = this.mouse.x - particle.x;
+                    const dy = this.mouse.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        const angle = Math.atan2(dy, dx);
+                        const force = (100 - distance) / 100;
+                        particle.x -= Math.cos(angle) * force * 2;
+                        particle.y -= Math.sin(angle) * force * 2;
+                    }
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.fill();
+                    
+                    for (let otherParticle of this.particles) {
+                        const dx = particle.x - otherParticle.x;
+                        const dy = particle.y - otherParticle.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 100) {
+                            this.ctx.beginPath();
+                            this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.2 * (1 - distance/100)})`;
+                            this.ctx.lineWidth = 0.5;
+                            this.ctx.moveTo(particle.x, particle.y);
+                            this.ctx.lineTo(otherParticle.x, otherParticle.y);
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            new ProfileManager();
+            new ParticleAnimation();
+            
+            // Проверка авторизации
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
+</body>
+</html>
