@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Platform</title>
+    <title>Skychart</title>
     <style>
         * {
             margin: 0;
@@ -115,8 +115,8 @@
 <body>
     <div class="container">
         <div class="logo">
-            <h1>🌟 Learning Platform</h1>
-            <p>Your gateway to astronomical education</p>
+            <h1>Skychart</h1>
+            <p>astronomical education</p>
         </div>
 
         <div class="nav-buttons">
@@ -133,29 +133,23 @@
         <div class="features">
             <h3>Platform Features:</h3>
             <ul style="text-align: left; margin-top: 15px; color: #666;">
-                <li>🔭 Interactive Sky Charts</li>
-                <li>⭐ Star System Modeling</li>
-                <li>💬 Real-time Messaging</li>
-                <li>📚 Educational Content</li>
+                <li>Yteshev sucks</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // Проверяем авторизацию при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
             const userInfo = document.getElementById('userInfo');
             const navButtons = document.querySelector('.nav-buttons');
             
             if (token) {
-                // Пользователь залогинен
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 document.getElementById('username').textContent = user.username || user.email || 'User';
                 userInfo.style.display = 'block';
                 navButtons.style.display = 'none';
             } else {
-                // Пользователь не залогинен
                 userInfo.style.display = 'none';
                 navButtons.style.display = 'flex';
             }
@@ -166,15 +160,12 @@
             localStorage.removeItem('user');
             window.location.reload();
         }
-
-        // Простая проверка что ссылки работают
         console.log('Index page loaded');
     </script>
 
     <canvas id="particles-canvas" class="particles-container"></canvas>
 
     <script>
-        // Тот же самый код анимации частиц
         class ParticleAnimation {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');

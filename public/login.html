@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Learning Platform</title>
+    <title>Login</title>
     <style>
         * {
             margin: 0;
@@ -82,7 +82,7 @@
         input[type="email"]:focus,
         input[type="password"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: rgb(12, 25, 80);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             background: white;
         }
@@ -90,7 +90,7 @@
         .btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(12, 25, 80) 0%, rgb(54, 42, 130) 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -118,7 +118,7 @@
         }
 
         .links a {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             text-decoration: none;
             transition: color 0.3s ease;
             font-size: 14px;
@@ -126,7 +126,7 @@
         }
 
         .links a:hover {
-            color: #764ba2;
+            color: rgb(54, 42, 130);
             text-decoration: underline;
         }
 
@@ -163,7 +163,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid rgb(12, 25, 80);
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -212,12 +212,7 @@
             <p>Sign in to your account</p>
         </div>
 
-        <!-- Демо-данные для тестирования -->
-        <div class="demo-credentials">
-            <h4>Demo Credentials:</h4>
-            <p><strong>Email:</strong> test@example.com</p>
-            <p><strong>Password:</strong> password123</p>
-        </div>
+       
 
         <div id="message" class="message"></div>
         
@@ -274,12 +269,8 @@
 
             init() {
                 this.form.addEventListener('submit', (e) => this.handleLogin(e));
-                
-                // Очистка сообщений при изменении полей
                 document.getElementById('email').addEventListener('input', () => this.clearMessage());
                 document.getElementById('password').addEventListener('input', () => this.clearMessage());
-
-                // Проверка авторизации при загрузке
                 this.checkExistingAuth();
             }
 
@@ -352,10 +343,7 @@
                     console.log('Response data:', data);
 
                     if (response.ok) {
-                        // Успешный логин
                         this.showMessage(data.message || 'Login successful!', 'success');
-
-                        // Сохраняем токен и данные пользователя
                         if (data.token) {
                             localStorage.setItem('token', data.token);
                             console.log('Token saved to localStorage');
@@ -365,14 +353,11 @@
                             localStorage.setItem('user', JSON.stringify(data.user));
                             console.log('User data saved:', data.user);
                         }
-
-                        // Перенаправляем через 1 секунду
                         setTimeout(() => {
                             window.location.href = '/skychart_list.html';
                         }, 1000);
 
                     } else {
-                        // Ошибка логина
                         this.showMessage(data.error || data.message || `Login failed (${response.status})`, 'error');
                     }
 
@@ -390,7 +375,6 @@
             }
         }
 
-        // Анимация частиц
         class ParticleAnimation {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');
@@ -473,13 +457,11 @@
                 requestAnimationFrame(() => this.animate());
             }
         }
-        
-        // Инициализация при загрузке страницы
+
         document.addEventListener('DOMContentLoaded', () => {
             new LoginManager();
             new ParticleAnimation();
             
-            // Добавляем глобальную функцию для отладки
             window.debugAuth = () => {
                 console.log('Token:', localStorage.getItem('token'));
                 console.log('User:', localStorage.getItem('user'));

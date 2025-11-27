@@ -1,5 +1,4 @@
 module.exports = {
-    // Тестовые пользователи
     testUsers: [
         {
             email: 'test1@example.com',
@@ -13,7 +12,6 @@ module.exports = {
         }
     ],
 
-    // Тестовые скайчарты
     testSkychart: {
         title: 'Test Skychart',
         points: [
@@ -22,7 +20,6 @@ module.exports = {
         ]
     },
 
-    // Тестовые сообщения
     testMessages: [
         { content: 'Hello!' },
         { content: 'How are you?' },

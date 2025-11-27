@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мои скайчарты - Learning Platform</title>
+    <title>My skycharts</title>
     <style>
         * {
             margin: 0;
@@ -56,7 +56,7 @@
             justify-content: center;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(12, 25, 80) 0%, rgb(54, 42, 130) 100%);
             color: white;
             border-radius: 50%;
             text-decoration: none;
@@ -103,7 +103,7 @@
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid rgb(12, 25, 80);
             transition: all 0.3s ease;
         }
 
@@ -185,32 +185,32 @@
         }
 
         .btn-edit {
-            background: #ffc107;
+            background: #fce49a;
             color: #212529;
         }
 
         .btn-edit:hover {
-            background: #e0a800;
+            background: #f0d276;
             transform: translateY(-1px);
         }
 
         .btn-play {
-            background: #28a745;
+            background: #8deba3;
             color: white;
         }
 
         .btn-play:hover {
-            background: #218838;
+            background: #6bb37b;
             transform: translateY(-1px);
         }
 
         .btn-delete {
-            background: #dc3545;
+            background: #ef8d97;
             color: white;
         }
 
         .btn-delete:hover {
-            background: #c82333;
+            background: #e26773;
             transform: translateY(-1px);
         }
 
@@ -246,7 +246,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid rgb(12, 25, 80);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -280,12 +280,12 @@
         }
 
         .nav-item.active {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             background: rgba(102, 126, 234, 0.1);
         }
 
         .nav-item:hover {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             transform: translateY(-2px);
         }
 
@@ -301,7 +301,7 @@
 
         .error-message {
             background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
+            color: #f47d89;
             padding: 15px;
             border-radius: 10px;
             text-align: center;
@@ -509,7 +509,7 @@
 
                     if (response.ok) {
                         alert('Скайчарт успешно удален');
-                        this.loadSkycharts(); // Перезагружаем список
+                        this.loadSkycharts();
                     } else {
                         throw new Error('Ошибка при удалении');
                     }
@@ -520,7 +520,6 @@
             }
         }
 
-        // Анимация частиц
         class ParticleAnimation {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');

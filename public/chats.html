@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чаты - Learning Platform</title>
+    <title>Chats</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(12, 25, 80) 0%, rgb(54, 42, 130) 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -46,12 +46,12 @@
         }
 
         .btn-primary {
-            background: #667eea;
+            background: rgb(12, 25, 80);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #5a6fd8;
+            background: rgb(54, 42, 130);
             transform: translateY(-1px);
         }
 
@@ -86,7 +86,7 @@
         }
 
         .search-input:focus {
-            border-color: #667eea;
+            border-color: rgb(12, 25, 80);
         }
 
         .search-results {
@@ -137,7 +137,7 @@
         }
 
         .chat-item.active {
-            background: #667eea;
+            background: rgb(12, 25, 80);
             color: white;
         }
 
@@ -145,7 +145,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(12, 25, 80) 0%, rgb(54, 42, 130) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -155,7 +155,7 @@
         }
 
         .favorite-avatar {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #84c192 0%, #6fbba4 100%);
         }
 
         .chat-info {
@@ -229,7 +229,7 @@
 
         .message.own {
             align-self: flex-end;
-            background: #667eea;
+            background: rgb(12, 25, 80);
             color: white;
             border-bottom-right-radius: 6px;
         }
@@ -273,12 +273,12 @@
         }
 
         .message-input:focus {
-            border-color: #667eea;
+            border-color: rgb(12, 25, 80);
         }
 
         .send-btn {
             padding: 12px 20px;
-            background: #667eea;
+            background: rgb(12, 25, 80);
             color: white;
             border: none;
             border-radius: 24px;
@@ -288,7 +288,7 @@
         }
 
         .send-btn:hover:not(:disabled) {
-            background: #5a6fd8;
+            background: rgb(12, 25, 80);
             transform: translateY(-1px);
         }
 
@@ -345,12 +345,12 @@
         }
 
         .nav-item.active {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             background: rgba(102, 126, 234, 0.1);
         }
 
         .nav-item:hover {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             transform: translateY(-2px);
         }
 
@@ -374,7 +374,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid rgb(12, 25, 80);
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -390,12 +390,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>💬 Чаты</h1>
+        <h1>Чаты</h1>
         <button class="btn btn-primary" id="newChatBtn">Новый чат</button>
     </div>
 
     <div class="container">
-        <!-- Боковая панель с чатами -->
         <div class="sidebar">
             <div class="search-section">
                 <input type="text" class="search-input" id="searchInput" placeholder="Поиск пользователей...">
@@ -410,11 +409,10 @@
             </div>
         </div>
 
-        <!-- Область чата -->
         <div class="chat-content">
             <div id="noChatSelected" class="no-chat-selected">
                 <div class="empty-state">
-                    <div class="empty-icon">💬</div>
+                    <div class="empty-icon"> </div>
                     <h3>Выберите чат для начала общения</h3>
                     <p>или создайте новый чат с другим пользователем</p>
                 </div>
@@ -426,7 +424,7 @@
                 </div>
                 
                 <div class="messages-container" id="messagesContainer">
-                    <!-- Сообщения будут добавляться здесь -->
+
                 </div>
                 
                 <div class="message-input-container">
@@ -541,7 +539,6 @@
 
                 let html = '';
 
-                // Добавляем избранный чат
                 if (this.favoriteChat) {
                     const isActive = this.currentChat?.id === this.favoriteChat.id;
                     const lastMessage = this.favoriteChat.last_message ? 
@@ -561,7 +558,6 @@
                     `;
                 }
 
-                // Добавляем обычные чаты
                 this.chats.forEach(chat => {
                     const isActive = this.currentChat?.id === chat.id;
                     const lastMessage = chat.last_message ? 
@@ -586,7 +582,6 @@
 
                 this.chatsList.innerHTML = html;
 
-                // Добавляем обработчики кликов на чаты
                 this.chatsList.querySelectorAll('.chat-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const chatId = item.dataset.chatId;
@@ -599,22 +594,14 @@
             async selectChat(chatId, chatType) {
                 try {
                     this.currentChat = { id: chatId, type: chatType };
-                    
-                    // Обновляем активный элемент в списке
                     this.chatsList.querySelectorAll('.chat-item').forEach(item => {
                         item.classList.remove('active');
                     });
                     this.chatsList.querySelector(`[data-chat-id="${chatId}"]`).classList.add('active');
-
-                    // Показываем область чата
                     this.noChatSelected.style.display = 'none';
                     this.chatArea.style.display = 'flex';
                     this.chatArea.style.flexDirection = 'column';
-
-                    // Загружаем сообщения
                     await this.loadMessages();
-
-                    // Устанавливаем заголовок чата
                     if (chatType === 'favorite') {
                         this.chatTitle.textContent = '⭐ Избранное';
                     } else {
@@ -623,10 +610,7 @@
                             this.chatTitle.textContent = chat.other_user.username || chat.other_user.email;
                         }
                     }
-
-                    // Фокусируемся на поле ввода
                     this.messageInput.focus();
-
                 } catch (error) {
                     console.error('Error selecting chat:', error);
                     this.showError('Ошибка загрузки чата');
@@ -635,7 +619,6 @@
 
             async loadMessages() {
                 if (!this.currentChat) return;
-
                 try {
                     const token = localStorage.getItem('token');
                     const response = await fetch(`/api/chats/${this.currentChat.id}/messages`, {
@@ -643,12 +626,9 @@
                             'Authorization': `Bearer ${token}`
                         }
                     });
-
                     if (!response.ok) throw new Error('Failed to load messages');
-
                     const data = await response.json();
                     this.renderMessages(data.messages);
-
                 } catch (error) {
                     console.error('Error loading messages:', error);
                     this.showError('Ошибка загрузки сообщений');
@@ -657,7 +637,6 @@
 
             renderMessages(messages) {
                 this.messagesContainer.innerHTML = '';
-
                 if (!messages || messages.length === 0) {
                     this.messagesContainer.innerHTML = `
                         <div class="empty-state">
@@ -668,7 +647,6 @@
                     `;
                     return;
                 }
-
                 messages.forEach(message => {
                     const isOwn = message.sender_id == this.currentUser.id;
                     const messageElement = document.createElement('div');
@@ -681,8 +659,6 @@
                     
                     this.messagesContainer.appendChild(messageElement);
                 });
-
-                // Прокручиваем к последнему сообщению
                 this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
             }
 
@@ -702,17 +678,10 @@
                     });
 
                     if (!response.ok) throw new Error('Failed to send message');
-
-                    // Очищаем поле ввода
                     this.messageInput.value = '';
                     this.validateMessage();
-
-                    // Перезагружаем сообщения
                     await this.loadMessages();
-                    
-                    // Обновляем список чатов (чтобы обновить последнее сообщение)
                     await this.loadChats();
-
                 } catch (error) {
                     console.error('Error sending message:', error);
                     this.showError('Ошибка отправки сообщения');
@@ -762,8 +731,6 @@
                 `).join('');
 
                 this.searchResults.style.display = 'block';
-
-                // Добавляем обработчики кликов
                 this.searchResults.querySelectorAll('.search-result-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const userId = item.dataset.userId;
@@ -787,19 +754,12 @@
                     if (!response.ok) throw new Error('Failed to create chat');
 
                     const data = await response.json();
-                    
-                    // Очищаем поиск
                     this.searchInput.value = '';
                     this.searchResults.style.display = 'none';
-
-                    // Перезагружаем список чатов
                     await this.loadChats();
-
-                    // Выбираем созданный чат
                     if (data.created) {
                         this.selectChat(data.chat.id, 'user');
                     }
-
                 } catch (error) {
                     console.error('Error creating chat:', error);
                     this.showError('Ошибка создания чата');
@@ -827,7 +787,6 @@
                 this.sendBtn.disabled = !hasText || !this.currentChat;
             }
 
-            // Вспомогательные методы
             truncateText(text, maxLength) {
                 return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
             }
@@ -857,15 +816,12 @@
             }
         }
 
-        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
-            // Проверка авторизации
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = '/login.html';
                 return;
             }
-
             new ChatManager();
         });
     </script>

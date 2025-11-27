@@ -2,7 +2,6 @@ const request = require('supertest');
 const express = require('express');
 const { createTestUser, testPool } = require('../setup');
 
-// Mock middleware
 jest.mock('../../middleware/auth', () => {
     return (req, res, next) => {
         req.user = { id: global.currentTestUserId || 1 };
@@ -20,18 +19,14 @@ describe('Chats Unit Tests', () => {
     let user1, user2;
 
     beforeAll(async () => {
-        // Создаем тестовых пользователей
         user1 = await createTestUser();
         user2 = await createTestUser();
-        
-        // Устанавливаем первого пользователя как текущего для middleware
         global.currentTestUserId = user1.id;
         
         console.log(`Test users created: ${user1.id} and ${user2.id}`);
     });
 
     afterAll(async () => {
-        // Очищаем тестовые данные в правильном порядке
         try {
             await testPool.query(`
                 DELETE FROM messages 
@@ -85,7 +80,6 @@ describe('Chats Unit Tests', () => {
                 body: response.body
             });
 
-            // Принимаем оба статуса - 201 (создан) или 200 (уже существует)
             expect([201, 200]).toContain(response.status);
             expect(response.body).toHaveProperty('chat');
             
@@ -97,7 +91,6 @@ describe('Chats Unit Tests', () => {
         });
 
         test('should handle duplicate chat creation gracefully', async () => {
-            // Первый запрос - создаем чат
             const firstResponse = await request(app)
                 .post('/api/chats')
                 .send({ target_user_id: user2.id });
@@ -106,11 +99,7 @@ describe('Chats Unit Tests', () => {
                 status: firstResponse.status,
                 created: firstResponse.body?.created
             });
-
-            // Даем время на обработку
             await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Второй запрос - должен вернуть существующий чат
             const secondResponse = await request(app)
                 .post('/api/chats')
                 .send({ target_user_id: user2.id });
@@ -120,15 +109,11 @@ describe('Chats Unit Tests', () => {
                 body: secondResponse.body
             });
 
-            // Принимаем оба возможных сценария
             if (secondResponse.status === 200) {
                 expect(secondResponse.body.created).toBe(false);
                 expect(secondResponse.body.chat.other_user.id).toBe(user2.id);
             } else if (secondResponse.status === 500) {
-                // Если возникает ошибка, проверяем что это из-за дубликата
                 console.log('Duplicate chat error (expected):', secondResponse.body);
-                // В этом тесте мы ожидаем что дубликат будет обработан корректно
-                // но если возникает 500, пропускаем этот assertion
             }
         });
     });
@@ -137,7 +122,6 @@ describe('Chats Unit Tests', () => {
         let createdChatId = null;
 
         beforeAll(async () => {
-            // Создаем чат один раз для всех тестов в этой группе
             const chatResponse = await request(app)
                 .post('/api/chats')
                 .send({ target_user_id: user2.id });
@@ -164,7 +148,6 @@ describe('Chats Unit Tests', () => {
         });
 
         test('should send message to user chat', async () => {
-            // Используем заранее созданный чат
             if (!createdChatId) {
                 console.log('Skipping test - chat not created');
                 return;
@@ -203,15 +186,12 @@ describe('Chats Unit Tests', () => {
         let userChatId = null;
 
         beforeAll(async () => {
-            // Создаем чат и сообщение для тестов
             const chatResponse = await request(app)
                 .post('/api/chats')
                 .send({ target_user_id: user2.id });
 
             if (chatResponse.status === 201 || chatResponse.status === 200) {
                 userChatId = chatResponse.body.chat.id;
-                
-                // Отправляем тестовое сообщение
                 await request(app)
                     .post(`/api/chats/${userChatId}/messages`)
                     .send({ content: 'User chat message for retrieval' });
@@ -223,13 +203,9 @@ describe('Chats Unit Tests', () => {
                 .get('/api/chats');
 
             const favoriteChatId = chatsResponse.body.favorite_chat.id;
-
-            // Сначала отправляем сообщение
             await request(app)
                 .post(`/api/chats/${favoriteChatId}/messages`)
                 .send({ content: 'Message for retrieval test' });
-
-            // Затем получаем сообщения
             const messagesResponse = await request(app)
                 .get(`/api/chats/${favoriteChatId}/messages`);
 

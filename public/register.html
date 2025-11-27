@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Learning Platform</title>
+    <title>Registration</title>
     <style>
         * {
             margin: 0;
@@ -95,7 +95,7 @@
         input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: rgb(12, 25, 80);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             background: white;
         }
@@ -103,7 +103,7 @@
         .btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(12, 25, 80) 0%, rgb(54, 42, 130) 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -129,7 +129,7 @@
         }
 
         .links a {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             text-decoration: none;
             transition: color 0.3s ease;
             font-size: 14px;
@@ -171,7 +171,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid rgb(12, 25, 80);
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -276,7 +276,6 @@
     </div>
 
     <script>
-        // Простая и надежная анимация частиц на Canvas 2D
         class ParticleAnimation {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');
@@ -286,8 +285,6 @@
                 
                 this.init();
                 this.animate();
-                
-                // Обработчик движения мыши для интерактивности
                 window.addEventListener('mousemove', (e) => {
                     this.mouse.x = e.clientX;
                     this.mouse.y = e.clientY;
@@ -297,8 +294,6 @@
             init() {
                 this.resize();
                 window.addEventListener('resize', () => this.resize());
-                
-                // Создаем частицы
                 for (let i = 0; i < 80; i++) {
                     this.particles.push({
                         x: Math.random() * this.canvas.width,
@@ -318,18 +313,11 @@
             
             animate() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                // Обновляем и рисуем частицы
                 for (let particle of this.particles) {
-                    // Движение частиц
                     particle.x += particle.speedX;
                     particle.y += particle.speedY;
-                    
-                    // Отскок от границ
                     if (particle.x < 0 || particle.x > this.canvas.width) particle.speedX *= -1;
                     if (particle.y < 0 || particle.y > this.canvas.height) particle.speedY *= -1;
-                    
-                    // Интерактивность с мышью
                     const dx = this.mouse.x - particle.x;
                     const dy = this.mouse.y - particle.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -340,14 +328,10 @@
                         particle.x -= Math.cos(angle) * force * 2;
                         particle.y -= Math.sin(angle) * force * 2;
                     }
-                    
-                    // Рисуем частицу
                     this.ctx.beginPath();
                     this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
                     this.ctx.fillStyle = particle.color;
                     this.ctx.fill();
-                    
-                    // Рисуем соединения между близкими частицами
                     for (let otherParticle of this.particles) {
                         const dx = particle.x - otherParticle.x;
                         const dy = particle.y - otherParticle.y;
@@ -367,13 +351,10 @@
                 requestAnimationFrame(() => this.animate());
             }
         }
-        
-        // Запускаем анимацию когда страница загружена
         document.addEventListener('DOMContentLoaded', () => {
             new ParticleAnimation();
         });
 
-        // Остальной JavaScript код для формы
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -383,8 +364,6 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const messageDiv = document.getElementById('message');
             const loadingDiv = document.getElementById('loading');
-
-            // Валидация паролей
             if (password !== confirmPassword) {
                 messageDiv.className = 'message error';
                 messageDiv.textContent = 'Passwords do not match';
@@ -399,7 +378,6 @@
                 return;
             }
 
-            // Показываем loading
             loadingDiv.style.display = 'block';
             messageDiv.style.display = 'none';
 
@@ -417,35 +395,24 @@
                 });
 
                 const data = await response.json();
-
-                // Скрываем loading
                 loadingDiv.style.display = 'none';
 
                 if (response.ok) {
-                    // Успешная регистрация
                     messageDiv.className = 'message success';
                     messageDiv.textContent = data.message + ' Redirecting...';
                     messageDiv.style.display = 'block';
-
-                    // Сохраняем токен в localStorage
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-
-                    // Перенаправляем на главную страницу через 1.5 секунды
                     setTimeout(() => {
                         window.location.href = '/skychart_list.html';
                     }, 1500);
                 } else {
-                    // Ошибка регистрации
                     messageDiv.className = 'message error';
                     messageDiv.textContent = data.error || 'Registration failed';
                     messageDiv.style.display = 'block';
                 }
             } catch (error) {
-                // Скрываем loading
                 loadingDiv.style.display = 'none';
-                
-                // Ошибка сети
                 messageDiv.className = 'message error';
                 messageDiv.textContent = 'Network error. Please try again.';
                 messageDiv.style.display = 'block';
@@ -453,7 +420,6 @@
             }
         });
 
-        // Проверяем, если пользователь уже залогинен
         window.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (token) {
@@ -461,7 +427,6 @@
             }
         });
 
-        // Очистка сообщений при изменении полей
         const formInputs = document.querySelectorAll('input');
         formInputs.forEach(input => {
             input.addEventListener('input', clearMessage);
@@ -472,7 +437,6 @@
             messageDiv.style.display = 'none';
         }
 
-        // Валидация подтверждения пароля в реальном времени
         document.getElementById('confirmPassword').addEventListener('input', function() {
             const password = document.getElementById('password').value;
             const confirmPassword = this.value;

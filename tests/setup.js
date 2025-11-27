@@ -1,7 +1,6 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Используем основную базу данных для тестов
 const TEST_DB_NAME = process.env.DB_NAME || 'auth_project';
 
 const testPool = new Pool({
@@ -12,7 +11,6 @@ const testPool = new Pool({
     password: process.env.DB_PASSWORD || '',
 });
 
-// Утилиты для тестов
 const createTestUser = async () => {
     const email = `test${Date.now()}@example.com`;
     const username = `testuser${Date.now()}`;
@@ -31,7 +29,6 @@ const createTestUser = async () => {
 
 const cleanupTestData = async () => {
     try {
-        // Удаляем в правильном порядке из-за foreign key constraints
         await testPool.query(`
             DELETE FROM messages 
             WHERE sender_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com')
@@ -68,7 +65,6 @@ const cleanupTestData = async () => {
     }
 };
 
-// Глобальная очистка перед выходом
 process.on('exit', async () => {
     await cleanupTestData();
 });

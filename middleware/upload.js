@@ -1,8 +1,6 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
-// Создаем папку uploads если ее нет
 const uploadDir = 'uploads/';
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -10,7 +8,7 @@ if (!fs.existsSync(uploadDir)) {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadDir); // Используем абсолютный путь
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -21,7 +19,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB
+        fileSize: 5 * 1024 * 1024
     },
     fileFilter: function (req, file, cb) {
         if (file.mimetype.startsWith('image/')) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль - Learning Platform</title>
+    <title>Profile</title>
     <style>
         * {
             margin: 0;
@@ -76,7 +76,7 @@
             padding: 25px;
             background: #f8f9fa;
             border-radius: 10px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid rgb(12, 25, 80);
         }
 
         .user-info h3 {
@@ -137,7 +137,7 @@
         .stat-number {
             font-size: 24px;
             font-weight: 700;
-            color: #667eea;
+            color: rgb(12, 25, 80);
             margin-bottom: 5px;
         }
 
@@ -185,12 +185,12 @@
         }
 
         .nav-item.active {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             background: rgba(102, 126, 234, 0.1);
         }
 
         .nav-item:hover {
-            color: #667eea;
+            color: rgb(12, 25, 80);
             transform: translateY(-2px);
         }
 
@@ -208,7 +208,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(12, 25, 80) 0%, rgb(54, 42, 130 100%));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -233,7 +233,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid rgb(12, 25, 80);
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -422,7 +422,7 @@
             showNoAuth() {
                 this.userProfile.innerHTML = `
                     <div class="no-data">
-                        <h3>❌ Не авторизован</h3>
+                        <h3>Не авторизован</h3>
                         <p>Для просмотра профиля необходимо войти в систему</p>
                         <button onclick="window.location.href='/login.html'" class="logout-btn" style="margin-top: 15px;">
                             Войти
@@ -434,7 +434,7 @@
             showNoUserData() {
                 this.userProfile.innerHTML = `
                     <div class="no-data">
-                        <h3>📝 Данные профиля не найдены</h3>
+                        <h3>Данные профиля не найдены</h3>
                         <p>Информация о пользователе не была сохранена</p>
                         <button onclick="location.reload()" class="logout-btn" style="margin-top: 15px; background: #6c757d;">
                             Обновить
@@ -446,7 +446,7 @@
             showError(message) {
                 this.userProfile.innerHTML = `
                     <div class="no-data">
-                        <h3>⚠️ Ошибка</h3>
+                        <h3>Ошибка</h3>
                         <p>${message}</p>
                         <button onclick="location.reload()" class="logout-btn" style="margin-top: 15px; background: #dc3545;">
                             Попробовать снова
@@ -464,7 +464,6 @@
             }
         }
 
-        // Анимация частиц
         class ParticleAnimation {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');
@@ -551,8 +550,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             new ProfileManager();
             new ParticleAnimation();
-            
-            // Проверка авторизации
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = '/login.html';

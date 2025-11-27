@@ -4,14 +4,49 @@ const router = express.Router();
 const pool = require('../config/database');
 
 /**
- * Получить список чатов пользователя
- * GET /api/chats
+ * @swagger
+ * tags:
+ *   name: Chats
+ *   description: Управление чатами и сообщениями
+ */
+
+/**
+ * @swagger
+ * /api/chats:
+ *   get:
+ *     summary: Получить список чатов пользователя
+ *     description: Возвращает все чаты пользователя, включая избранный чат и чаты с другими пользователями
+ *     tags: [Chats]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Успешный запрос списка чатов
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 chats:
+ *                   type: array
+ *                   description: Список чатов с другими пользователями
+ *                   items:
+ *                     $ref: '#/components/schemas/Chat'
+ *                 favorite_chat:
+ *                   $ref: '#/components/schemas/Chat'
+ *                   description: Избранный чат пользователя
+ *       401:
+ *         description: Неавторизованный доступ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Внутренняя ошибка сервера
  */
 router.get('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
-
-        // Получаем обычные чаты с другими пользователями
         const chatsResult = await pool.query(
             `SELECT 
                 c.id,
@@ -32,7 +67,6 @@ router.get('/', auth, async (req, res) => {
             [userId]
         );
 
-        // Получаем или создаем избранный чат
         let favoriteChat = await pool.query(
             `SELECT id, user_id, created_at 
              FROM favorite_chats 
@@ -49,7 +83,6 @@ router.get('/', auth, async (req, res) => {
             );
         }
 
-        // Получаем последнее сообщение из избранного
         const favoriteLastMessage = await pool.query(
             `SELECT content, created_at 
              FROM messages 
@@ -68,7 +101,6 @@ router.get('/', auth, async (req, res) => {
             last_message_time: favoriteLastMessage.rows[0]?.created_at
         };
 
-        // Форматируем обычные чаты
         const formattedChats = chatsResult.rows.map(chat => {
             const otherUser = chat.user1_id === userId ? 
                 { id: chat.user2_id, username: chat.user2_username, email: chat.user2_email } :
@@ -96,12 +128,65 @@ router.get('/', auth, async (req, res) => {
 });
 
 /**
- * Создать или получить чат с пользователем
- * POST /api/chats
- */
-/**
- * Создать или получить чат с пользователем
- * POST /api/chats
+ * @swagger
+ * /api/chats:
+ *   post:
+ *     summary: Создать новый чат с пользователем
+ *     description: Создает чат между текущим пользователем и указанным пользователем. Если чат уже существует, возвращает существующий чат.
+ *     tags: [Chats]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - target_user_id
+ *             properties:
+ *               target_user_id:
+ *                 type: integer
+ *                 description: ID пользователя, с которым создается чат
+ *                 example: 2
+ *     responses:
+ *       201:
+ *         description: Чат успешно создан
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 chat:
+ *                   $ref: '#/components/schemas/Chat'
+ *                 created:
+ *                   type: boolean
+ *                   description: Флаг создания нового чата
+ *                   example: true
+ *       200:
+ *         description: Чат уже существует
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 chat:
+ *                   $ref: '#/components/schemas/Chat'
+ *                 created:
+ *                   type: boolean
+ *                   example: false
+ *       400:
+ *         description: Неверные параметры запроса
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Попытка создать чат с самим собой
+ *       404:
+ *         description: Пользователь не найден
+ *       500:
+ *         description: Внутренняя ошибка сервера
  */
 router.post('/', auth, async (req, res) => {
     try {
@@ -116,7 +201,6 @@ router.post('/', auth, async (req, res) => {
             return res.status(400).json({ error: 'Cannot create chat with yourself' });
         }
 
-        // Проверяем существование целевого пользователя
         const targetUser = await pool.query(
             'SELECT id, username, email FROM users WHERE id = $1',
             [target_user_id]
@@ -126,7 +210,6 @@ router.post('/', auth, async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // Ищем существующий чат
         const existingChat = await pool.query(
             `SELECT id, user1_id, user2_id, created_at 
              FROM chats 
@@ -136,21 +219,16 @@ router.post('/', auth, async (req, res) => {
 
         if (existingChat.rows.length > 0) {
             const chat = existingChat.rows[0];
-            
-            // Определяем другого пользователя в чате
             let otherUser;
             if (chat.user1_id === userId) {
-                otherUser = targetUser.rows[0]; // user2 - целевой пользователь
+                otherUser = targetUser.rows[0];
             } else {
-                // Получаем данные user1
                 const user1Result = await pool.query(
                     'SELECT id, username, email FROM users WHERE id = $1',
                     [chat.user1_id]
                 );
                 otherUser = user1Result.rows[0];
             }
-
-            // Проверяем что otherUser существует
             if (!otherUser) {
                 return res.status(404).json({ error: 'Other user not found' });
             }
@@ -165,8 +243,6 @@ router.post('/', auth, async (req, res) => {
                 created: false
             });
         }
-
-        // Создаем новый чат
         const newChat = await pool.query(
             `INSERT INTO chats (user1_id, user2_id) 
              VALUES ($1, $2) 
@@ -190,19 +266,53 @@ router.post('/', auth, async (req, res) => {
     }
 });
 /**
- * Получить сообщения чата
- * GET /api/chats/:id/messages
+ * @swagger
+ * /api/chats/{id}/messages:
+ *   get:
+ *     summary: Получить сообщения чата
+ *     description: Возвращает все сообщения указанного чата. Поддерживает как обычные чаты, так и избранные чаты.
+ *     tags: [Chats]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: |
+ *           ID чата. Для избранного чата используйте префикс 'favorite_'
+ *           Пример: 'favorite_1' или '123'
+ *     responses:
+ *       200:
+ *         description: Успешный запрос сообщений
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messages:
+ *                   type: array
+ *                   description: Список сообщений чата
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *                 chat_type:
+ *                   type: string
+ *                   enum: [user, favorite]
+ *                   description: Тип чата
+ *       403:
+ *         description: Нет доступа к чату
+ *       404:
+ *         description: Чат не найден
+ *       500:
+ *         description: Внутренняя ошибка сервера
  */
 router.get('/:id/messages', auth, async (req, res) => {
     try {
         const chatId = req.params.id;
         const userId = req.user.id;
-
-        // Определяем тип чата
         if (chatId.startsWith('favorite_')) {
             const favoriteChatId = chatId.replace('favorite_', '');
-            
-            // Проверяем доступ к избранному
             const favoriteChat = await pool.query(
                 'SELECT user_id FROM favorite_chats WHERE id = $1',
                 [favoriteChatId]
@@ -211,8 +321,6 @@ router.get('/:id/messages', auth, async (req, res) => {
             if (favoriteChat.rows.length === 0 || favoriteChat.rows[0].user_id !== userId) {
                 return res.status(403).json({ error: 'Access denied' });
             }
-
-            // Получаем сообщения из избранного
             const messages = await pool.query(
                 `SELECT 
                     m.id,
@@ -231,7 +339,6 @@ router.get('/:id/messages', auth, async (req, res) => {
             return res.json({ messages: messages.rows, chat_type: 'favorite' });
 
         } else {
-            // Обычный чат
             const chat = await pool.query(
                 'SELECT user1_id, user2_id FROM chats WHERE id = $1',
                 [chatId]
@@ -246,7 +353,6 @@ router.get('/:id/messages', auth, async (req, res) => {
                 return res.status(403).json({ error: 'Access denied' });
             }
 
-            // Получаем сообщения обычного чата
             const messages = await pool.query(
                 `SELECT 
                     m.id,
@@ -262,7 +368,6 @@ router.get('/:id/messages', auth, async (req, res) => {
                 [chatId]
             );
 
-            // Помечаем сообщения как прочитанные
             await pool.query(
                 `UPDATE messages 
                  SET is_read = TRUE 
@@ -280,8 +385,60 @@ router.get('/:id/messages', auth, async (req, res) => {
 });
 
 /**
- * Отправить сообщение
- * POST /api/chats/:id/messages
+ * @swagger
+ * /api/chats/{id}/messages:
+ *   post:
+ *     summary: Отправить сообщение в чат
+ *     description: Отправляет текстовое сообщение в указанный чат. Поддерживает обычные чаты и избранные чаты.
+ *     tags: [Chats]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: |
+ *           ID чата. Для избранного чата используйте префикс 'favorite_'
+ *           Пример: 'favorite_1' или '123'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 description: Текст сообщения
+ *                 example: Привет! Как дела?
+ *                 minLength: 1
+ *                 maxLength: 1000
+ *     responses:
+ *       201:
+ *         description: Сообщение успешно отправлено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   $ref: '#/components/schemas/Message'
+ *       400:
+ *         description: Неверные параметры сообщения
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Нет доступа к чату
+ *       404:
+ *         description: Чат не найден
+ *       500:
+ *         description: Внутренняя ошибка сервера
  */
 router.post('/:id/messages', auth, async (req, res) => {
     try {
@@ -298,7 +455,6 @@ router.post('/:id/messages', auth, async (req, res) => {
         if (chatId.startsWith('favorite_')) {
             const favoriteChatId = chatId.replace('favorite_', '');
             
-            // Проверяем доступ к избранному
             const favoriteChat = await pool.query(
                 'SELECT user_id FROM favorite_chats WHERE id = $1',
                 [favoriteChatId]
@@ -308,7 +464,6 @@ router.post('/:id/messages', auth, async (req, res) => {
                 return res.status(403).json({ error: 'Access denied' });
             }
 
-            // Сохраняем сообщение в избранное
             message = await pool.query(
                 `INSERT INTO messages (favorite_chat_id, sender_id, content) 
                  VALUES ($1, $2, $3) 
@@ -317,7 +472,6 @@ router.post('/:id/messages', auth, async (req, res) => {
             );
 
         } else {
-            // Обычный чат
             const chat = await pool.query(
                 'SELECT user1_id, user2_id FROM chats WHERE id = $1',
                 [chatId]
@@ -332,7 +486,6 @@ router.post('/:id/messages', auth, async (req, res) => {
                 return res.status(403).json({ error: 'Access denied' });
             }
 
-            // Сохраняем сообщение в обычный чат
             message = await pool.query(
                 `INSERT INTO messages (chat_id, sender_id, content) 
                  VALUES ($1, $2, $3) 
@@ -341,7 +494,6 @@ router.post('/:id/messages', auth, async (req, res) => {
             );
         }
 
-        // Получаем данные отправителя
         const sender = await pool.query(
             'SELECT username FROM users WHERE id = $1',
             [userId]
@@ -361,8 +513,39 @@ router.post('/:id/messages', auth, async (req, res) => {
 });
 
 /**
- * Поиск пользователей для создания чата
- * GET /api/chats/users/search?q=username
+ * @swagger
+ * /api/chats/users/search:
+ *   get:
+ *     summary: Поиск пользователей для создания чата
+ *     description: Поиск пользователей по username или email для создания нового чата
+ *     tags: [Chats]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Поисковый запрос (минимум 2 символа)
+ *         example: john
+ *     responses:
+ *       200:
+ *         description: Успешный поиск пользователей
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   description: Список найденных пользователей
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Слишком короткий поисковый запрос
+ *       500:
+ *         description: Внутренняя ошибка сервера
  */
 router.get('/users/search', auth, async (req, res) => {
     try {

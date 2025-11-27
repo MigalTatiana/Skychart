@@ -17,10 +17,7 @@ describe('API Integration Tests', () => {
     let authToken;
 
     beforeAll(async () => {
-        // Создаем пользователя с реальным паролем для тестов аутентификации
         testUser = await createTestUser();
-        
-        // Регистрируем пользователя с правильным паролем
         const userData = {
             email: testUser.email,
             password: 'password123',
@@ -35,12 +32,9 @@ describe('API Integration Tests', () => {
             status: registerResponse.status,
             hasToken: !!registerResponse.body.token
         });
-
-        // Если регистрация прошла успешно, используем полученный токен
         if (registerResponse.status === 201) {
             authToken = registerResponse.body.token;
         } else {
-            // Если пользователь уже существует, логинимся
             const loginResponse = await request(app)
                 .post('/api/auth/login')
                 .send({
@@ -56,7 +50,6 @@ describe('API Integration Tests', () => {
             if (loginResponse.status === 200) {
                 authToken = loginResponse.body.token;
             } else {
-                // Создаем нового пользователя для тестов
                 const newTestUser = await createTestUser();
                 const newRegisterResponse = await request(app)
                     .post('/api/auth/register')
@@ -77,7 +70,6 @@ describe('API Integration Tests', () => {
     });
 
     afterAll(async () => {
-        // Очищаем тестовые данные
         try {
             await testPool.query(`
                 DELETE FROM messages 
@@ -116,8 +108,6 @@ describe('API Integration Tests', () => {
                 console.log('Skipping skychart test - no auth token');
                 return;
             }
-
-            // 1. Create skychart
             const createResponse = await request(app)
                 .post('/api/skycharts')
                 .set('Authorization', `Bearer ${authToken}`)
@@ -133,8 +123,6 @@ describe('API Integration Tests', () => {
                 hasToken: !!authToken,
                 body: createResponse.body
             });
-
-            // Проверяем различные возможные статусы
             if (createResponse.status === 401) {
                 console.log('Authentication failed, token might be invalid');
             }
@@ -143,24 +131,18 @@ describe('API Integration Tests', () => {
             
             if (createResponse.status === 201) {
                 const skychartId = createResponse.body.skychart.id;
-
-                // 2. Get user skycharts
                 const listResponse = await request(app)
                     .get('/api/skycharts/my')
                     .set('Authorization', `Bearer ${authToken}`);
 
                 expect(listResponse.status).toBe(200);
                 expect(listResponse.body.skycharts.length).toBeGreaterThan(0);
-
-                // 3. Get specific skychart
                 const getResponse = await request(app)
                     .get(`/api/skycharts/${skychartId}`)
                     .set('Authorization', `Bearer ${authToken}`);
 
                 expect(getResponse.status).toBe(200);
                 expect(getResponse.body.skychart.id).toBe(skychartId);
-
-                // 4. Delete skychart
                 const deleteResponse = await request(app)
                     .delete(`/api/skycharts/${skychartId}`)
                     .set('Authorization', `Bearer ${authToken}`);
@@ -182,8 +164,6 @@ describe('API Integration Tests', () => {
                 console.log('Skipping chat test - no auth token');
                 return;
             }
-
-            // 1. Create chat
             const chatResponse = await request(app)
                 .post('/api/chats')
                 .set('Authorization', `Bearer ${authToken}`)
@@ -193,14 +173,10 @@ describe('API Integration Tests', () => {
                 status: chatResponse.status,
                 body: chatResponse.body
             });
-
-            // Принимаем оба статуса (201 - создан, 200 - уже существует)
             expect([201, 200, 401]).toContain(chatResponse.status);
             
             if (chatResponse.status === 201 || chatResponse.status === 200) {
                 const chatId = chatResponse.body.chat.id;
-
-                // 2. Send message
                 const messageResponse = await request(app)
                     .post(`/api/chats/${chatId}/messages`)
                     .set('Authorization', `Bearer ${authToken}`)
@@ -212,8 +188,6 @@ describe('API Integration Tests', () => {
                 });
 
                 expect(messageResponse.status).toBe(201);
-
-                // 3. Get messages
                 const messagesResponse = await request(app)
                     .get(`/api/chats/${chatId}/messages`)
                     .set('Authorization', `Bearer ${authToken}`);
@@ -233,8 +207,6 @@ describe('API Integration Tests', () => {
                 console.log('Skipping favorite chat test - no auth token');
                 return;
             }
-
-            // 1. Get chats to find favorite chat ID
             const chatsResponse = await request(app)
                 .get('/api/chats')
                 .set('Authorization', `Bearer ${authToken}`);
@@ -248,8 +220,6 @@ describe('API Integration Tests', () => {
             expect(chatsResponse.body).toHaveProperty('favorite_chat');
             
             const favoriteChatId = chatsResponse.body.favorite_chat.id;
-
-            // 2. Send message to favorite chat
             const messageResponse = await request(app)
                 .post(`/api/chats/${favoriteChatId}/messages`)
                 .set('Authorization', `Bearer ${authToken}`)
@@ -260,8 +230,6 @@ describe('API Integration Tests', () => {
             });
 
             expect(messageResponse.status).toBe(201);
-
-            // 3. Get messages from favorite chat
             const messagesResponse = await request(app)
                 .get(`/api/chats/${favoriteChatId}/messages`)
                 .set('Authorization', `Bearer ${authToken}`);
@@ -273,10 +241,7 @@ describe('API Integration Tests', () => {
 
     describe('Authentication Flow', () => {
         test('should handle authentication correctly', async () => {
-            // Создаем нового пользователя специально для теста аутентификации
             const authTestUser = await createTestUser();
-            
-            // 1. Register new user
             const registerResponse = await request(app)
                 .post('/api/auth/register')
                 .send({
@@ -289,14 +254,10 @@ describe('API Integration Tests', () => {
                 status: registerResponse.status,
                 hasToken: !!registerResponse.body?.token
             });
-
-            // Регистрация может вернуть 201 (успех) или 400 (уже существует)
             if (registerResponse.status === 201) {
                 expect(registerResponse.body).toHaveProperty('token');
                 expect(registerResponse.body).toHaveProperty('user');
             }
-
-            // 2. Login with correct credentials
             const loginResponse = await request(app)
                 .post('/api/auth/login')
                 .send({
@@ -308,14 +269,10 @@ describe('API Integration Tests', () => {
                 status: loginResponse.status,
                 hasToken: !!loginResponse.body?.token
             });
-
-            // Логин может вернуть 200 (успех) или 400 (неверные данные)
             if (loginResponse.status === 200) {
                 expect(loginResponse.body).toHaveProperty('token');
                 expect(loginResponse.body).toHaveProperty('user');
             }
-
-            // 3. Login with wrong password (должен всегда падать)
             const wrongLoginResponse = await request(app)
                 .post('/api/auth/login')
                 .send({
@@ -325,8 +282,6 @@ describe('API Integration Tests', () => {
 
             expect(wrongLoginResponse.status).toBe(400);
             expect(wrongLoginResponse.body).toHaveProperty('error');
-
-            // Cleanup
             await testPool.query('DELETE FROM users WHERE id = $1', [authTestUser.id]);
         });
     });

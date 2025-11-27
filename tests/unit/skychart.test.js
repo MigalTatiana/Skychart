@@ -2,8 +2,6 @@ const request = require('supertest');
 const express = require('express');
 const skychartsRoutes = require('../../routes/skycharts');
 const { createTestUser, testPool } = require('../setup');
-
-// Mock middleware - используем глобальную переменную для user ID
 jest.mock('../../middleware/auth', () => {
     return (req, res, next) => {
         req.user = { id: global.currentTestUserId || 1 };
@@ -20,32 +18,23 @@ describe('Skycharts Unit Tests', () => {
 
     beforeAll(async () => {
         testUser = await createTestUser();
-        // Устанавливаем реальный ID пользователя для middleware
         global.currentTestUserId = testUser.id;
         console.log(`Test user created with ID: ${testUser.id}`);
     });
 
     afterAll(async () => {
-        // Очищаем в правильном порядке из-за foreign key constraints
         try {
-            // Сначала удаляем точки скайчартов
             await testPool.query(`
                 DELETE FROM skychart_points 
                 WHERE skychart_id IN (SELECT id FROM skycharts WHERE user_id = $1)
             `, [testUser.id]);
-            
-            // Затем удаляем скайчарты
             await testPool.query('DELETE FROM skycharts WHERE user_id = $1', [testUser.id]);
-            
-            // И наконец пользователя
             await testPool.query('DELETE FROM users WHERE id = $1', [testUser.id]);
             
             console.log('Skychart test data cleaned up successfully');
         } catch (error) {
             console.error('Error cleaning skychart test data:', error);
         }
-        
-        // Очищаем глобальную переменную
         delete global.currentTestUserId;
     });
 
@@ -106,7 +95,6 @@ describe('Skycharts Unit Tests', () => {
 
     describe('GET /api/skycharts/my', () => {
         test('should return user skycharts', async () => {
-            // Сначала создаем скайчарт чтобы было что возвращать
             await request(app)
                 .post('/api/skycharts')
                 .send({
@@ -126,8 +114,6 @@ describe('Skycharts Unit Tests', () => {
             expect(response.body).toHaveProperty('skycharts');
             expect(Array.isArray(response.body.skycharts)).toBe(true);
             expect(response.body.skycharts.length).toBeGreaterThan(0);
-            
-            // Проверяем что скайчарты принадлежат тестовому пользователю
             response.body.skycharts.forEach(skychart => {
                 expect(skychart.user_id).toBe(testUser.id);
             });
@@ -147,7 +133,6 @@ describe('Skycharts Unit Tests', () => {
 
     describe('GET /api/skycharts/:id', () => {
         test('should return specific skychart', async () => {
-            // Сначала создаем скайчарт
             const createResponse = await request(app)
                 .post('/api/skycharts')
                 .send({
@@ -158,8 +143,6 @@ describe('Skycharts Unit Tests', () => {
                 });
 
             const skychartId = createResponse.body.skychart.id;
-
-            // Затем получаем его по ID
             const getResponse = await request(app)
                 .get(`/api/skycharts/${skychartId}`);
 
