@@ -99,6 +99,10 @@ router.get('/', auth, async (req, res) => {
  * Создать или получить чат с пользователем
  * POST /api/chats
  */
+/**
+ * Создать или получить чат с пользователем
+ * POST /api/chats
+ */
 router.post('/', auth, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -132,15 +136,30 @@ router.post('/', auth, async (req, res) => {
 
         if (existingChat.rows.length > 0) {
             const chat = existingChat.rows[0];
-            const otherUser = chat.user1_id === userId ? 
-                targetUser.rows[0] : 
-                await pool.query('SELECT id, username, email FROM users WHERE id = $1', [chat.user1_id]);
+            
+            // Определяем другого пользователя в чате
+            let otherUser;
+            if (chat.user1_id === userId) {
+                otherUser = targetUser.rows[0]; // user2 - целевой пользователь
+            } else {
+                // Получаем данные user1
+                const user1Result = await pool.query(
+                    'SELECT id, username, email FROM users WHERE id = $1',
+                    [chat.user1_id]
+                );
+                otherUser = user1Result.rows[0];
+            }
+
+            // Проверяем что otherUser существует
+            if (!otherUser) {
+                return res.status(404).json({ error: 'Other user not found' });
+            }
 
             return res.json({
                 chat: {
                     id: chat.id,
                     type: 'user',
-                    other_user: otherUser.rows[0],
+                    other_user: otherUser,
                     created_at: chat.created_at
                 },
                 created: false
@@ -170,7 +189,6 @@ router.post('/', auth, async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
 /**
  * Получить сообщения чата
  * GET /api/chats/:id/messages

@@ -1,43 +1,80 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Тестовая база данных
-const TEST_DB_NAME = 'auth_project_test';
+// Используем основную базу данных для тестов
+const TEST_DB_NAME = process.env.DB_NAME || 'auth_project';
 
 const testPool = new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
     database: TEST_DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
 });
 
-// Глобальные тестовые переменные
-global.testUsers = [];
-global.testSkycharts = [];
-global.testChats = [];
-
 // Утилиты для тестов
-global.createTestUser = async () => {
+const createTestUser = async () => {
     const email = `test${Date.now()}@example.com`;
-    const result = await testPool.query(
-        'INSERT INTO users (email, password_hash, username) VALUES ($1, $2, $3) RETURNING *',
-        [email, 'hashed_password', `user${Date.now()}`]
-    );
-    global.testUsers.push(result.rows[0]);
-    return result.rows[0];
+    const username = `testuser${Date.now()}`;
+    try {
+        const result = await testPool.query(
+            'INSERT INTO users (email, password_hash, username) VALUES ($1, $2, $3) RETURNING *',
+            [email, '$2a$10$fakehashfortesting', username]
+        );
+        console.log(`Created test user: ${email} with ID: ${result.rows[0].id}`);
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error creating test user:', error);
+        throw error;
+    }
 };
 
-global.cleanupTestData = async () => {
-    for (const user of global.testUsers) {
-        await testPool.query('DELETE FROM users WHERE id = $1', [user.id]);
+const cleanupTestData = async () => {
+    try {
+        // Удаляем в правильном порядке из-за foreign key constraints
+        await testPool.query(`
+            DELETE FROM messages 
+            WHERE sender_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com')
+            OR chat_id IN (SELECT id FROM chats WHERE user1_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com'))
+            OR favorite_chat_id IN (SELECT id FROM favorite_chats WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com'))
+        `);
+        
+        await testPool.query(`
+            DELETE FROM chats 
+            WHERE user1_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com') 
+            OR user2_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com')
+        `);
+        
+        await testPool.query(`
+            DELETE FROM favorite_chats 
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com')
+        `);
+        
+        await testPool.query(`
+            DELETE FROM skychart_points 
+            WHERE skychart_id IN (SELECT id FROM skycharts WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com'))
+        `);
+        
+        await testPool.query(`
+            DELETE FROM skycharts 
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test%@example.com')
+        `);
+        
+        await testPool.query(`DELETE FROM users WHERE email LIKE 'test%@example.com'`);
+        
+        console.log('Test data cleaned up successfully');
+    } catch (error) {
+        console.error('Error cleaning test data:', error);
     }
-    global.testUsers = [];
-    global.testSkycharts = [];
-    global.testChats = [];
 };
+
+// Глобальная очистка перед выходом
+process.on('exit', async () => {
+    await cleanupTestData();
+});
 
 module.exports = {
     testPool,
-    TEST_DB_NAME
+    createTestUser,
+    cleanupTestData
 };

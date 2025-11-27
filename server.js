@@ -27,3 +27,11 @@ app.listen(PORT, () => {
 
 const chatsRoutes = require('./routes/chats');
 app.use('/api/chats', chatsRoutes);
+
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

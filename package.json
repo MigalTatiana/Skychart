@@ -9,9 +9,9 @@
     "test": "jest",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
-    "test:e2e": "jest tests/e2e",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:clean": "node -e \"require('./tests/setup').cleanupTestData()\""
   },
   "keywords": [],
   "author": "",
