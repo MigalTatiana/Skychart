@@ -24,3 +24,6 @@ app.get('/api', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+const chatsRoutes = require('./routes/chats');
+app.use('/api/chats', chatsRoutes);
