@@ -6,12 +6,19 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build": "npm run lint && npm test",
+    "lint": "eslint . --ext .js --fix",
     "test": "jest",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:clean": "node -e \"require('./tests/setup').cleanupTestData()\""
+    "test:clean": "node -e \"require('./tests/setup').cleanupTestData()\"",
+    "audit": "npm audit --audit-level moderate"
+  },
+  "jest-junit": {
+    "outputDirectory": ".",
+    "outputName": "junit.xml"
   },
   "keywords": [],
   "author": "",
