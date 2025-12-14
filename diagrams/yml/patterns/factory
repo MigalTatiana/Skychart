@@ -1,0 +1,24 @@
+classDiagram
+    class SkyChartFactory {
+        +create_from_upload(file, points_data, user_id) SkyChart
+        +create_from_template(template_id , user_id) SkyChart
+        -_validate_image(file) bool
+        -_process_image(file) Image
+    }
+    
+    class SkyChart {
+        +id: UUID.
+        +user_id: UUID
+        +image:Image
+        +points: List~ChartPoint~
+        +add_point(point)
+    }
+    
+    class ChartPoint {
+        +x:Float
+        +y: Float
+        +label: String
+    }
+    
+    SkyChartFactory --> SkyChart : создаёт
+    SkyChart --> ChartPoint : содержит

@@ -1,0 +1,32 @@
+classDiagram
+    class SkyChartView {
+        +render_chart_creation_form()
+        +display_chart_list()
+        +show_error(message)
+    }
+    
+    class SkyChartController {
+        +create_chart(user_id, image_data , points)
+        +get_user_charts(user_id)
+        +delete_chart(chart_id)
+    }
+    
+    class SkyChart {
+        -id: UUID
+        -user_id: UUID
+        -image: Blob
+        -points: List~ChartPoint~
+        +add_point(point)
+        +remove_point(point_id)
+    }
+    
+    class ChartPoint {
+        -id: UUID
+        -x: Float
+        -y: Float
+        -label: String
+    }
+    
+    SkyChartView --> SkyChartController : использует
+    SkyChartController --> SkyChart : управляет
+    SkyChart --> ChartPoint : содержит

@@ -1,0 +1,44 @@
+class User {
+  - userId: UUID
+  - username: String
+  - email: String
+  - passwordHash: String
+  - profileImage: String
+  + register()
+  + login()
+  + updateProfile()
+}
+
+class SkyChart {
+  - chartId: UUID
+  - owner: User
+  - public: Boolean
+  - image: String (ссылка на картинку на серваке)
+  - createdAt: DateTime
+  + createChart()
+  + addPoint()
+  + getPoints()
+}
+
+class ChartPoint {
+  - pointId: UUID
+  - chart: SkyChart
+  - x: Float
+  - y: Float
+  - r: Float
+  - label: String
+}
+
+class Chat {
+  - chatId: UUID
+  - participants: User[]
+  - messages: Message[]
+}
+
+class Message {
+  - messageId: UUID
+  - chat: Chat
+  - sender: User
+  - content: String
+  - timestamp: DateTime
+}

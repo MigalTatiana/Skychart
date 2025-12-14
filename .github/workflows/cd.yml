@@ -1,0 +1,51 @@
+name: Skychart CD
+
+on:
+  workflow_run:
+    workflows: ["Skychart CI"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  package:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skychart
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: skychart/package-lock.json
+
+      - name: Install production dependencies
+        run: |
+          npm ci
+          npm prune --omit=dev
+
+      - name: Package application
+        run: |
+          tar -czf ../skychart-prod.tar.gz \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='coverage' \
+            --exclude='docs' \
+            --exclude='tests' \
+            --exclude='diagrams' \
+            .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: skychart-prod-${{ github.run_number }}
+          path: skychart-prod.tar.gz
+          retention-days: 14
